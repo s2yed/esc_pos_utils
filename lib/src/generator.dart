@@ -176,7 +176,7 @@ class Generator {
 
     // R/G/B channels are same -> keep only one channel
     final List<int> oneChannelBytes = [];
-    final imgBinary = image.convert(numChannels: 4);
+    final imgBinary = image.convert(numChannels: 2);
     final List<int> buffer = imgBinary.getBytes();
 
     // final List<int> buffer = image.getBytes(format: Format.rgba);
