@@ -176,7 +176,7 @@ class Generator {
 
     // R/G/B channels are same -> keep only one channel
     final List<int> oneChannelBytes = [];
-    final imgBinary = image.convert(numChannels: 2);
+    final imgBinary = image.convert(numChannels: 4);
     final List<int> buffer = imgBinary.getBytes();
 
     // final List<int> buffer = image.getBytes(format: Format.rgba);
@@ -585,7 +585,7 @@ class Generator {
     invert(image);
     // flip(image, Flip.horizontal);
     // final Image imageRotated = copyRotate(image, 270);
-    final Image imageRotated = flipHorizontal(copyRotate(image, angle: 270));
+    final Image imageRotated = flipHorizontal(copyRotate(image, angle: 90));
 
     const int lineHeight = highDensityVertical ? 3 : 1;
     final List<List<int>> blobs = _toColumnFormat(imageRotated, lineHeight * 8);
