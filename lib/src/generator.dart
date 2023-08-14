@@ -148,7 +148,7 @@ class Generator {
     fill(biggerImage,        color: image.getColor(255, 0, 0),   );
 
     // Insert source image into bigger one
-     drawImage(biggerImage, image, dstX: 0, dstY: 0);
+    image =  drawImage(biggerImage, image, dstX: 0, dstY: 0);
 
     int left = 0;
     final List<List<int>> blobs = [];
@@ -579,9 +579,7 @@ class Generator {
     const bool highDensityVertical = true;
 
     invert(image);
-
     flip(image, direction: FlipDirection.horizontal);
-
     final Image imageRotated = copyRotate(image, angle:270);
 
     const int lineHeight = highDensityVertical ? 3 : 1;
@@ -591,7 +589,6 @@ class Generator {
     // Line height contains 8 or 24 pixels of src image
     // Each blobs[i] contains greyscale bytes [0-255]
     // const int pxPerLine = 24 ~/ lineHeight;
-
     for (int blobInd = 0; blobInd < blobs.length; blobInd++) {
       blobs[blobInd] = _packBitsIntoBytes(blobs[blobInd]);
     }
