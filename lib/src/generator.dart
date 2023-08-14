@@ -148,7 +148,7 @@ class Generator {
     fill(biggerImage,        color: image.getColor(255, 0, 0),   );
 
     // Insert source image into bigger one
-    image =  drawImage(biggerImage, image, dstX: 0, dstY: 0);
+    compositeImage(biggerImage, image, dstX: 0, dstY: 0);
 
     int left = 0;
     final List<List<int>> blobs = [];
