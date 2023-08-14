@@ -137,7 +137,7 @@ class Generator {
   /// [image] Image to extract from
   /// [lineHeight] Printed line height in dots
   List<List<int>> _toColumnFormat(Image imgSrc, int lineHeight) {
-    final Image image = Image.from(imgSrc); // make a copy
+    Image image = Image.from(imgSrc); // make a copy
 
     // Determine new width: closest integer that is divisible by lineHeight
     final int widthPx = (image.width + lineHeight) - (image.width % lineHeight);
@@ -145,16 +145,18 @@ class Generator {
 
     // Create a black bottom layer
     final biggerImage = copyResize(image, width: widthPx, height: heightPx);
-    fill(biggerImage, 0);
+    fill(biggerImage,        color: image.getColor(255, 0, 0),   );
+
     // Insert source image into bigger one
-    drawImage(biggerImage, image, dstX: 0, dstY: 0);
+     drawImage(biggerImage, image, dstX: 0, dstY: 0);
 
     int left = 0;
     final List<List<int>> blobs = [];
 
     while (left < widthPx) {
-      final Image slice = copyCrop(biggerImage, left, 0, lineHeight, heightPx);
-      final Uint8List bytes = slice.getBytes(format: Format.luminance);
+      // final Image slice = copyCrop(biggerImage, left, 0, lineHeight, heightPx);
+      final Image slice = copyCrop(biggerImage, x:left, y:0, width:lineHeight, height:heightPx);
+      Uint8List bytes = encodePng(slice);  // Encode the slice as PNG format
       blobs.add(bytes);
       left += lineHeight;
     }
@@ -173,7 +175,7 @@ class Generator {
 
     // R/G/B channels are same -> keep only one channel
     final List<int> oneChannelBytes = [];
-    final List<int> buffer = image.getBytes(format: Format.rgba);
+    final List<int> buffer = image.getBytes(order: ChannelOrder.rgba);
     for (int i = 0; i < buffer.length; i += 4) {
       oneChannelBytes.add(buffer[i]);
     }
@@ -577,8 +579,10 @@ class Generator {
     const bool highDensityVertical = true;
 
     invert(image);
-    flip(image, Flip.horizontal);
-    final Image imageRotated = copyRotate(image, 270);
+
+    flip(image, direction: FlipDirection.horizontal);
+
+    final Image imageRotated = copyRotate(image, angle:270);
 
     const int lineHeight = highDensityVertical ? 3 : 1;
     final List<List<int>> blobs = _toColumnFormat(imageRotated, lineHeight * 8);
@@ -587,6 +591,7 @@ class Generator {
     // Line height contains 8 or 24 pixels of src image
     // Each blobs[i] contains greyscale bytes [0-255]
     // const int pxPerLine = 24 ~/ lineHeight;
+
     for (int blobInd = 0; blobInd < blobs.length; blobInd++) {
       blobs[blobInd] = _packBitsIntoBytes(blobs[blobInd]);
     }
@@ -836,4 +841,45 @@ class Generator {
     return bytes;
   }
   // ************************ (end) Internal command generators ************************
+}
+Image drawImage(Image dst, Image src,
+    {int? dstX,
+      int? dstY,
+      int? dstW,
+      int? dstH,
+      int? srcX,
+      int? srcY,
+      int? srcW,
+      int? srcH,
+      bool blend = true}) {
+  dstX ??= 0;
+  dstY ??= 0;
+  srcX ??= 0;
+  srcY ??= 0;
+  srcW ??= src.width;
+  srcH ??= src.height;
+  dstW ??= (dst.width < src.width) ? dstW = dst.width : src.width;
+  dstH ??= (dst.height < src.height) ? dst.height : src.height;
+
+  if (blend) {
+    for (var y = 0; y < dstH; ++y) {
+      for (var x = 0; x < dstW; ++x) {
+        final stepX = (x * (srcW / dstW)).toInt();
+        final stepY = (y * (srcH / dstH)).toInt();
+        final srcPixel = src.getPixel(srcX + stepX, srcY + stepY);
+        drawPixel(dst, dstX + x, dstY + y, srcPixel);
+      }
+    }
+  } else {
+    for (var y = 0; y < dstH; ++y) {
+      for (var x = 0; x < dstW; ++x) {
+        final stepX = (x * (srcW / dstW)).toInt();
+        final stepY = (y * (srcH / dstH)).toInt();
+        final srcPixel = src.getPixel(srcX + stepX, srcY + stepY);
+        dst.setPixel(dstX + x, dstY + y, srcPixel);
+      }
+    }
+  }
+
+  return dst;
 }
